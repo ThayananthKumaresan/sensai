@@ -1,0 +1,2019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Special Needs Collaboration Platform</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        .sidebar {
+            width: 250px;
+            min-width: 250px;
+            background-color: #ffffff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-right: 1px solid #e0e0e0;
+            transition: transform 0.3s ease-in-out;
+        }
+        .sidebar.hidden-mobile {
+            transform: translateX(-100%);
+            position: absolute;
+            z-index: 50;
+            height: 100%;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100%;
+                width: 250px; /* Fixed width for sliding sidebar */
+                z-index: 100;
+                box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            }
+            .sidebar.hidden-mobile {
+                transform: translateX(-100%);
+            }
+        }
+
+        .main-content {
+            flex-grow: 1;
+            background-color: #f9fafb;
+        }
+        .header {
+            background-color: #ffffff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .nav-item:hover {
+            background-color: #e0f2fe; /* Light blue for hover */
+            color: #0d9488; /* Teal for text */
+        }
+        .nav-item.active {
+            background-color: #0d9488; /* Teal for active */
+            color: #ffffff;
+            font-weight: 600;
+        }
+        .nav-item.active svg {
+            color: #ffffff;
+        }
+        .nav-item svg {
+            margin-right: 12px;
+            width: 20px;
+            height: 20px;
+            color: #6b7280; /* Gray for inactive icons */
+        }
+        .nav-item.active svg {
+            color: #ffffff;
+        }
+        .card {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            padding: 24px;
+        }
+        .tag {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-right: 8px;
+            white-space: nowrap;
+        }
+        .tag-iep { background-color: #e0f2fe; color: #0d9488; } /* Light blue, teal */
+        .tag-engagement { background-color: #fffbe6; color: #d97706; } /* Light yellow, orange */
+        .tag-attendance { background-color: #fef2f2; color: #dc2626; } /* Light red, red */
+        .tag-disability { background-color: #eef2ff; color: #4f46e5; } /* Light indigo, indigo */
+
+        .progress-circle {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: conic-gradient(#0d9488 var(--progress, 0%), #e5e7eb var(--progress, 0%));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #0d9488;
+        }
+        .progress-circle::after {
+            content: attr(data-progress);
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0d9488;
+        }
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.5); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            width: 90%;
+            max-width: 1000px;
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .close-button {
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            font-size: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #aaa;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: #333;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .tab-button {
+            padding: 10px 20px;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            font-weight: 500;
+            color: #6b7280;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .tab-button.active {
+            color: #0d9488;
+            border-color: #0d9488;
+            background-color: #f0fdf4;
+        }
+        .chat-message {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            margin-bottom: 10px;
+        }
+        .chat-message.user {
+            background-color: #0d9488;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+        .chat-message.bot {
+            background-color: #e5e7eb;
+            color: #333;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+        .chat-input-container {
+            border-top: 1px solid #e0e0e0;
+            padding: 15px;
+            background-color: #ffffff;
+        }
+        .emoji-picker {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .emoji-picker span {
+            cursor: pointer;
+            font-size: 24px;
+            padding: 5px;
+            border-radius: 8px;
+            background-color: #f3f4f6;
+            transition: background-color 0.2s;
+        }
+        .emoji-picker span:hover {
+            background-color: #e5e7eb;
+        }
+        .emoji-picker span.selected {
+            background-color: #0d9488;
+            transform: scale(1.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        /* Chart Styling */
+        .chart-bar {
+            background-color: #0d9488;
+            height: 20px;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            transition: width 0.5s ease-out;
+        }
+        .chart-pie {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: white;
+        }
+        .chart-sparkline {
+            height: 50px;
+            width: 100%;
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+            background-color: #f3f4f6;
+            border-radius: 8px;
+            padding: 5px;
+        }
+        .sparkline-bar {
+            width: 10px;
+            background-color: #0d9488;
+            border-radius: 2px;
+        }
+
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100%;
+                width: 250px; /* Fixed width for sliding sidebar */
+                z-index: 100;
+                box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            }
+            .sidebar.hidden-mobile {
+                transform: translateX(-100%);
+            }
+            .nav-item {
+                justify-content: flex-start; /* Keep text aligned left */
+                padding: 12px 20px; /* Restore padding */
+                margin-bottom: 8px;
+            }
+            .nav-item span {
+                display: inline; /* Show text on small screens when sidebar is open */
+            }
+            .header {
+                padding: 10px;
+            }
+            .header .flex-grow {
+                display: none; /* Hide search bar on small screens */
+            }
+            .student-card {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            .student-card img {
+                margin-bottom: 16px;
+            }
+            .student-card .flex-grow {
+                margin-left: 0;
+                margin-top: 16px;
+            }
+            .student-card .progress-circle {
+                margin-top: 16px;
+            }
+            .modal-content {
+                width: 95%;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Role Selection Screen -->
+    <div id="role-selection" class="fixed inset-0 bg-gray-100 flex items-center justify-center z-[2000]">
+        <div class="card p-8 text-center max-w-md w-full">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">Welcome! Select Your Role</h2>
+            <div class="flex flex-col space-y-4">
+                <button onclick="selectRole('teacher')" class="bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3 px-6 rounded-lg text-lg transition duration-200 shadow-md">
+                    I am a Teacher
+                </button>
+                <button onclick="selectRole('parent')" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg text-lg transition duration-200 shadow-md">
+                    I am a Parent
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application Layout -->
+    <div id="app-container" class="hidden flex flex-grow">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar flex flex-col py-6 px-4 md:block">
+            <div class="flex-shrink-0 mb-8 px-2">
+                <h1 class="text-2xl font-extrabold text-teal-700">EduConnect</h1>
+            </div>
+            <nav class="flex-grow">
+                <div id="teacher-nav" class="hidden">
+                    <div class="nav-item active" data-view="home">
+                        <i data-lucide="home"></i><span>Home</span>
+                    </div>
+                    <div class="nav-item" data-view="student-list">
+                        <i data-lucide="users"></i><span>Student List</span>
+                    </div>
+                    <div class="nav-item" data-view="iep-manager">
+                        <i data-lucide="clipboard-list"></i><span>IEP Manager</span>
+                    </div>
+                    <div class="nav-item" data-view="messages">
+                        <i data-lucide="mail"></i><span>Messages</span>
+                    </div>
+                    <div class="nav-item" data-view="knowledge-bank">
+                        <i data-lucide="book-open"></i><span>Knowledge Bank</span>
+                    </div>
+                    <div class="nav-item" data-view="teacher-chatbot">
+                        <i data-lucide="message-square"></i><span>Chatbot</span>
+                    </div>
+                    <div class="nav-item" data-view="admin-files">
+                        <i data-lucide="folder"></i><span>Admin Files</span>
+                    </div>
+                </div>
+                <div id="parent-nav" class="hidden">
+                    <div class="nav-item active" data-view="home">
+                        <i data-lucide="home"></i><span>Home</span>
+                    </div>
+                    <div class="nav-item" data-view="my-child">
+                        <i data-lucide="baby"></i><span>My Child</span>
+                    </div>
+                    <div class="nav-item" data-view="upload-records">
+                        <i data-lucide="upload"></i><span>Upload Records</span>
+                    </div>
+                    <div class="nav-item" data-view="messages">
+                        <i data-lucide="mail"></i><span>Messages</span>
+                    </div>
+                    <div class="nav-item" data-view="parent-chatbot">
+                        <i data-lucide="message-square"></i><span>Chatbot</span>
+                    </div>
+                </div>
+            </nav>
+            <div class="flex-shrink-0 mt-8 px-2">
+                <div class="nav-item" onclick="showRoleSelection()">
+                    <i data-lucide="log-out"></i><span>Switch Role</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content flex flex-col">
+            <!-- Header -->
+            <header class="header flex items-center justify-between p-4 sticky top-0 z-10">
+                <div class="flex items-center space-x-4">
+                    <button class="md:hidden p-2 rounded-full hover:bg-gray-100" onclick="toggleSidebar()">
+                        <i data-lucide="menu"></i>
+                    </button>
+                    <div class="relative flex-grow max-w-md hidden md:block">
+                        <input type="text" placeholder="Search..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500">
+                        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="relative cursor-pointer" onclick="openNotificationModal()">
+                        <i data-lucide="bell" class="text-gray-600"></i>
+                        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">3</span>
+                    </div>
+                    <div class="flex items-center space-x-2 cursor-pointer" onclick="openProfileDropdown()">
+                        <img id="profile-pic" src="https://placehold.co/40x40/008080/FFFFFF?text=U" alt="Profile" class="rounded-full w-10 h-10 object-cover">
+                        <span class="font-medium text-gray-700" id="profile-name">User Name</span>
+                        <i data-lucide="chevron-down" class="text-gray-500"></i>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content Views -->
+            <div class="flex-grow p-6 overflow-y-auto">
+                <!-- Home View (Teacher & Parent) -->
+                <div id="home-view" class="view">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6">Welcome, <span id="welcome-user-role"></span>!</h2>
+                    <div id="teacher-home-content" class="hidden">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div class="card p-6">
+                                <h3 class="text-xl font-semibold text-gray-700 mb-4">Quick Stats</h3>
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-gray-600">Active Students:</span>
+                                    <span class="font-bold text-teal-600">25</span>
+                                </div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-gray-600">IEPs Due This Month:</span>
+                                    <span class="font-bold text-orange-600">5</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-600">New Observations Today:</span>
+                                    <span class="font-bold text-blue-600">12</span>
+                                </div>
+                            </div>
+                            <div class="card p-6">
+                                <h3 class="text-xl font-semibold text-gray-700 mb-4">Recent Activity</h3>
+                                <ul class="space-y-2 text-sm text-gray-600">
+                                    <li><span class="font-medium text-teal-600">Sarah Lee</span> IEP updated by Admin.</li>
+                                    <li><span class="font-medium text-teal-600">David Chen</span> new observation added.</li>
+                                    <li><span class="font-medium text-teal-600">Parent of Emily Wong</span> uploaded new medical record.</li>
+                                </ul>
+                            </div>
+                            <div class="card p-6">
+                                <h3 class="text-xl font-semibold text-gray-700 mb-4">AI Assistant Insights</h3>
+                                <p class="text-sm text-gray-600">"Overall student engagement has slightly increased this week. Focus on group activities for social skill development."</p>
+                                <button onclick="openReportModal('teacher-report')" class="mt-4 bg-teal-500 text-white py-2 px-4 rounded-lg text-sm hover:bg-teal-600 transition">View Full Report</button>
+                            </div>
+                            <div class="card p-6 col-span-1 md:col-span-2 lg:col-span-3">
+                                <h3 class="text-xl font-semibold text-gray-700 mb-4">Overall Platform Metrics</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    <div>
+                                        <p class="text-gray-600">Total Students:</p>
+                                        <p class="text-2xl font-bold text-teal-600">25</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-600">Average IEP Progress:</p>
+                                        <p class="text-2xl font-bold text-blue-600">68%</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-600">Daily Active Users:</p>
+                                        <p class="text-2xl font-bold text-purple-600">45</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-600">Overall Attendance Rate:</p>
+                                        <p class="text-2xl font-bold text-green-600">92%</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-600">Top IEP Goals at Risk:</p>
+                                        <ul class="text-sm text-red-600 font-medium">
+                                            <li>Verbal expression (Ali)</li>
+                                            <li>Social initiation (David)</li>
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-600">New Parent Uploads:</p>
+                                        <p class="text-2xl font-bold text-orange-600">3</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="parent-home-content" class="hidden">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div class="card p-6">
+                                <h3 class="text-xl font-semibold text-gray-700 mb-4">My Child's Progress</h3>
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-gray-600">Current Focus:</span>
+                                    <span class="font-bold text-teal-600">Improving focus during group play</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 mt-4">
+                                    <div class="bg-teal-600 h-2.5 rounded-full" style="width: 75%"></div>
+                                </div>
+                                <p class="text-sm text-gray-500 mt-2">75% progress on current IEP goal.</p>
+                            </div>
+                            <div class="card p-6">
+                                <h3 class="text-xl font-semibold text-gray-700 mb-4">Daily Summary from Teacher</h3>
+                                <p class="text-sm text-gray-600">"Ali was attentive during morning routines. Struggled with group storytelling. Completed 3 of 4 tasks."</p>
+                                <div class="flex items-center mt-3">
+                                    <span class="text-2xl mr-2">😊</span> <span class="text-gray-600">Mood: Happy</span>
+                                </div>
+                                <p class="text-sm text-gray-600 mt-2">Attendance today: <span class="font-medium text-green-600">Present</span></p>
+                                <button onclick="openReportModal('parent-summary')" class="mt-4 bg-blue-500 text-white py-2 px-4 rounded-lg text-sm hover:bg-blue-600 transition">View Full Summary</button>
+                            </div>
+                            <div class="card p-6">
+                                <h3 class="text-xl font-semibold text-gray-700 mb-4">Suggested Home Activities</h3>
+                                <ul class="space-y-2 text-sm text-gray-600">
+                                    <li><span class="font-medium text-blue-600">Sound Sorting Game:</span> Targets auditory processing.</li>
+                                    <li><span class="font-medium text-blue-600">Building Blocks Challenge:</span> Enhances fine motor skills.</li>
+                                </ul>
+                                <button class="mt-4 bg-blue-500 text-white py-2 px-4 rounded-lg text-sm hover:bg-blue-600 transition">Explore More</button>
+                            </div>
+                            <div class="card p-6 col-span-1 md:col-span-2 lg:col-span-3">
+                                <h3 class="text-xl font-semibold text-gray-700 mb-4">Robot Recorded Data Highlights</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <p class="text-gray-600">Avg. Attention Span (Last Week):</p>
+                                        <p class="text-2xl font-bold text-teal-600">10 mins</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-600">Task Completion Rate:</p>
+                                        <p class="text-2xl font-bold text-blue-600">70%</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-600">Dominant Mood:</p>
+                                        <p class="text-2xl font-bold text-purple-600">😊 Happy</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Student List View (Teacher Only) -->
+                <div id="student-list-view" class="view hidden">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6">Student List</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="student-cards-container">
+                        <!-- Student cards will be dynamically inserted here -->
+                    </div>
+                </div>
+
+                <!-- Student Profile Modal (Teacher Only) -->
+                <div id="student-profile-modal" class="modal">
+                    <div class="modal-content">
+                        <span class="close-button" onclick="closeStudentProfileModal()">&times;</span>
+                        <div id="student-profile-content">
+                            <!-- Content loaded dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- My Child View (Parent Only) -->
+                <div id="my-child-view" class="view hidden">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6">My Child's Profile</h2>
+                    <div id="my-child-profile-content">
+                        <!-- Content loaded dynamically for the parent's child -->
+                    </div>
+                </div>
+
+                <!-- IEP Manager View (Teacher Only) -->
+                <div id="iep-manager-view" class="view hidden">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6">IEP Manager</h2>
+                    <div class="card p-6">
+                        <h3 class="text-xl font-semibold text-gray-700 mb-4">Upcoming IEP Reviews</h3>
+                        <ul class="space-y-4">
+                            <li class="flex items-center justify-between border-b pb-2">
+                                <div>
+                                    <p class="font-semibold text-lg">Alex Johnson</p>
+                                    <p class="text-sm text-gray-600">Review Date: <span class="font-medium text-orange-600">July 25, 2025</span></p>
+                                </div>
+                                <button onclick="openIEPManagerModal('s1')" class="bg-teal-500 text-white py-2 px-4 rounded-lg text-sm hover:bg-teal-600 transition">Manage IEP</button>
+                            </li>
+                            <li class="flex items-center justify-between border-b pb-2">
+                                <div>
+                                    <p class="font-semibold text-lg">Mia Chang</p>
+                                    <p class="text-sm text-gray-600">Review Date: <span class="font-medium text-orange-600">August 10, 2025</span></p>
+                                </div>
+                                <button onclick="openIEPManagerModal('s2')" class="bg-teal-500 text-white py-2 px-4 rounded-lg text-sm hover:bg-teal-600 transition">Manage IEP</button>
+                            </li>
+                            <li>
+                                <div>
+                                    <p class="font-semibold text-lg">Lucas Brown</p>
+                                    <p class="text-sm text-gray-600">Review Date: <span class="font-medium text-orange-600">September 1, 2025</span></p>
+                                </div>
+                                <button onclick="openIEPManagerModal('s3')" class="bg-teal-500 text-white py-2 px-4 rounded-lg text-sm hover:bg-teal-600 transition">Manage IEP</button>
+                            </li>
+                        </ul>
+                        <button class="mt-6 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition">View All IEPs</button>
+                    </div>
+                </div>
+
+                <!-- Knowledge Bank View (Teacher Only) -->
+                <div id="knowledge-bank-view" class="view hidden">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6">Knowledge Bank</h2>
+                    <div class="mb-6">
+                        <input type="text" placeholder="Search articles, strategies..." class="w-full pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500">
+                    </div>
+                    <div class="flex flex-wrap gap-3 mb-6">
+                        <span class="tag bg-gray-200 text-gray-700 cursor-pointer hover:bg-gray-300">Sensory Processing</span>
+                        <span class="tag bg-gray-200 text-gray-700 cursor-pointer hover:bg-gray-300">Emotional Regulation</span>
+                        <span class="tag bg-gray-200 text-gray-700 cursor-pointer hover:bg-gray-300">Verbal/Non-Verbal</span>
+                        <span class="tag bg-gray-200 text-gray-700 cursor-pointer hover:bg-gray-300">Motor Skills</span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="card p-6">
+                            <h3 class="text-xl font-semibold text-gray-700 mb-2">Understanding Sensory Overload in Children</h3>
+                            <p class="text-sm text-gray-600 mb-4">Practical tips for identifying and managing sensory sensitivities in the classroom.</p>
+                            <a href="#" class="text-teal-600 hover:underline text-sm" onclick="alert('Simulating external link: Opening article on Sensory Overload.')">Read More <i data-lucide="external-link" class="inline-block w-4 h-4 ml-1"></i></a>
+                        </div>
+                        <div class="card p-6">
+                            <h3 class="text-xl font-semibold text-gray-700 mb-2">Effective Strategies for Emotional Regulation</h3>
+                            <p class="text-sm text-gray-600 mb-4">Techniques to help children develop self-soothing and emotional management skills.</p>
+                            <a href="#" class="text-teal-600 hover:underline text-sm" onclick="alert('Simulating external link: Opening article on Emotional Regulation.')">Read More <i data-lucide="external-link" class="inline-block w-4 h-4 ml-1"></i></a>
+                        </div>
+                        <div class="card p-6">
+                            <h3 class="text-xl font-semibold text-gray-700 mb-2">Promoting Verbal Communication in Non-Verbal Students</h3>
+                            <p class="text-sm text-gray-600 mb-4">Alternative communication methods and supportive classroom environments.</p>
+                            <a href="#" class="text-teal-600 hover:underline text-sm" onclick="alert('Simulating external link: Opening article on Verbal Communication.')">Read More <i data-lucide="external-link" class="inline-block w-4 h-4 ml-1"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chatbot View (Teacher & Parent) -->
+                <div id="teacher-chatbot-view" class="view hidden flex flex-col h-[70vh] card p-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">Teacher Chatbot</h2>
+                    <div class="flex-grow overflow-y-auto mb-4 p-4 border border-gray-200 rounded-lg bg-gray-50 flex flex-col space-y-3" id="teacher-chat-messages">
+                        <div class="chat-message bot">Hello! How can I assist you today?</div>
+                        <div class="chat-message bot">You can try these prompts:</div>
+                        <div class="flex flex-wrap gap-2 mb-2">
+                            <button class="bg-gray-200 text-gray-700 py-2 px-4 rounded-full text-sm hover:bg-gray-300" onclick="sendChatMessage('Suggest calming strategies for a student.', 'teacher')">Suggest calming strategies</button>
+                            <button class="bg-gray-200 text-gray-700 py-2 px-4 rounded-full text-sm hover:bg-gray-300" onclick="sendChatMessage('What are common IEP goals for speech therapy?', 'teacher')">Common IEP goals for speech therapy?</button>
+                            <button class="bg-gray-200 text-gray-700 py-2 px-4 rounded-full text-sm hover:bg-gray-300" onclick="sendChatMessage('How to improve focus during group activities?', 'teacher')">Improve focus in group activities?</button>
+                        </div>
+                    </div>
+                    <div class="chat-input-container flex items-center">
+                        <input type="text" id="teacher-chat-input" placeholder="Type your message..." class="flex-grow py-2 px-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 mr-2">
+                        <button onclick="sendChatMessage(document.getElementById('teacher-chat-input').value, 'teacher')" class="bg-teal-500 text-white py-2 px-4 rounded-lg hover:bg-teal-600 transition">Send</button>
+                    </div>
+                </div>
+
+                <div id="parent-chatbot-view" class="view hidden flex flex-col h-[70vh] card p-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">Parent Chatbot</h2>
+                    <div class="flex-grow overflow-y-auto mb-4 p-4 border border-gray-200 rounded-lg bg-gray-50 flex flex-col space-y-3" id="parent-chat-messages">
+                        <div class="chat-message bot">Hello! How can I assist you today regarding your child's progress?</div>
+                        <div class="chat-message bot">You can try these prompts:</div>
+                        <div class="flex flex-wrap gap-2 mb-2">
+                            <button class="bg-gray-200 text-gray-700 py-2 px-4 rounded-full text-sm hover:bg-gray-300" onclick="sendChatMessage('How is my kid today?', 'parent')">How is my kid today?</button>
+                            <button class="bg-gray-200 text-gray-700 py-2 px-4 rounded-full text-sm hover:bg-gray-300" onclick="sendChatMessage('Why is verbal goal progress slow for my child?', 'parent')">Why is verbal goal progress slow?</button>
+                            <button class="bg-gray-200 text-gray-700 py-2 px-4 rounded-full text-sm hover:bg-gray-300" onclick="sendChatMessage('Any activities to support eye contact at home?', 'parent')">Activities for eye contact?</button>
+                            <button class="bg-gray-200 text-gray-700 py-2 px-4 rounded-full text-sm hover:bg-gray-300" onclick="sendChatMessage('How can I help with emotional regulation?', 'parent')">Help with emotional regulation?</button>
+                        </div>
+                    </div>
+                    <div class="chat-input-container flex items-center">
+                        <input type="text" id="parent-chat-input" placeholder="Type your message..." class="flex-grow py-2 px-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mr-2">
+                        <button onclick="sendChatMessage(document.getElementById('parent-chat-input').value, 'parent')" class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition">Send</button>
+                    </div>
+                </div>
+
+                <!-- Admin Files View (Teacher Only) -->
+                <div id="admin-files-view" class="view hidden">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6">Admin Files</h2>
+                    <div class="card p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-semibold text-gray-700">My Documents</h3>
+                            <div class="flex space-x-2">
+                                <button onclick="simulateFileUpload()" class="bg-teal-500 text-white py-2 px-4 rounded-lg text-sm hover:bg-teal-600 transition">Upload File</button>
+                                <button onclick="alert('Simulating: New Folder created.')" class="bg-gray-200 text-gray-700 py-2 px-4 rounded-lg text-sm hover:bg-gray-300">New Folder</button>
+                            </div>
+                        </div>
+                        <ul class="space-y-3">
+                            <li class="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50">
+                                <div class="flex items-center">
+                                    <i data-lucide="file-text" class="w-5 h-5 text-gray-500 mr-2"></i>
+                                    <span class="font-medium">IEP_Template_2025.docx</span>
+                                </div>
+                                <div class="text-sm text-gray-500">
+                                    <button onclick="alert('Simulating: Renaming file.')" class="text-blue-500 hover:underline mr-2">Rename</button>
+                                    <button onclick="alert('Simulating: Deleting file.')" class="text-red-500 hover:underline">Delete</button>
+                                </div>
+                            </li>
+                            <li class="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50">
+                                <div class="flex items-center">
+                                    <i data-lucide="file-text" class="w-5 h-5 text-gray-500 mr-2"></i>
+                                    <span class="font-medium">Student_Progress_Report_Guidelines.pdf</span>
+                                </div>
+                                <div class="text-sm text-gray-500">
+                                    <button onclick="alert('Simulating: Renaming file.')" class="text-blue-500 hover:underline mr-2">Rename</button>
+                                    <button onclick="alert('Simulating: Deleting file.')" class="text-red-500 hover:underline">Delete</button>
+                                </div>
+                            </li>
+                            <li class="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50">
+                                <div class="flex items-center">
+                                    <i data-lucide="file-text" class="w-5 h-5 text-gray-500 mr-2"></i>
+                                    <span class="font-medium">Parent_Communication_Log.xlsx</span>
+                                </div>
+                                <div class="text-sm text-gray-500">
+                                    <button onclick="alert('Simulating: Renaming file.')" class="text-blue-500 hover:underline mr-2">Rename</button>
+                                    <button onclick="alert('Simulating: Deleting file.')" class="text-red-500 hover:underline">Delete</button>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Upload Records View (Parent Only) -->
+                <div id="upload-records-view" class="view hidden">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6">Upload Records</h2>
+                    <div class="card p-6">
+                        <h3 class="text-xl font-semibold text-gray-700 mb-4">Upload New File for Your Child</h3>
+                        <div class="mb-4">
+                            <label for="file-type" class="block text-gray-700 text-sm font-bold mb-2">File Type:</label>
+                            <select id="file-type" class="shadow border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                <option value="medical">Medical Record</option>
+                                <option value="home-video">Home Video</option>
+                                <option value="log">Observation Log (Home)</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label for="file-upload" class="block text-gray-700 text-sm font-bold mb-2">Upload File:</label>
+                            <div class="flex items-center justify-center w-full">
+                                <label for="file-upload-input" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition">
+                                    <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                        <i data-lucide="upload-cloud" class="w-8 h-8 mb-3 text-gray-400"></i>
+                                        <p class="mb-2 text-sm text-gray-500"><span class="font-semibold">Click to upload</span> or drag and drop</p>
+                                        <p class="text-xs text-gray-500">PDF, DOC, JPG, MP4 (MAX. 10MB)</p>
+                                    </div>
+                                    <input id="file-upload-input" type="file" class="hidden" />
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label for="file-notes" class="block text-gray-700 text-sm font-bold mb-2">Notes (Optional):</label>
+                            <textarea id="file-notes" rows="3" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Add any relevant notes..."></textarea>
+                        </div>
+                        <button onclick="simulateFileUpload()" class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition">Submit Upload</button>
+                        <div id="upload-message" class="mt-4 text-sm text-green-600 hidden">File uploaded successfully!</div>
+                    </div>
+                </div>
+
+                <!-- Messages View (Teacher & Parent) -->
+                <div id="messages-view" class="view hidden">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6">Messages</h2>
+                    <div class="card flex flex-col h-[70vh]">
+                        <div class="flex-shrink-0 border-b pb-4 mb-4">
+                            <h3 class="text-xl font-semibold text-gray-700">Conversation with Teacher/Parent</h3>
+                        </div>
+                        <div class="flex-grow overflow-y-auto p-4 bg-gray-50 rounded-lg space-y-4" id="message-thread">
+                            <!-- Messages dynamically loaded here -->
+                            <div class="flex justify-start">
+                                <div class="bg-gray-200 p-3 rounded-lg max-w-xs">
+                                    <p class="text-sm">Hi, just wanted to give a quick update on Ali's progress today. He had a great morning!</p>
+                                    <span class="text-xs text-gray-500 block text-right mt-1">10:30 AM</span>
+                                </div>
+                            </div>
+                            <div class="flex justify-end">
+                                <div class="bg-blue-500 text-white p-3 rounded-lg max-w-xs">
+                                    <p class="text-sm">That's wonderful to hear! Thank you for the update.</p>
+                                    <span class="text-xs text-blue-200 block text-right mt-1">10:35 AM</span>
+                                </div>
+                            </div>
+                            <div class="flex justify-start">
+                                <div class="bg-gray-200 p-3 rounded-lg max-w-xs">
+                                    <p class="text-sm">He struggled a bit with the group storytelling activity, but showed good attention during individual tasks.</p>
+                                    <span class="text-xs text-gray-500 block text-right mt-1">11:00 AM</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex-shrink-0 mt-4">
+                            <div class="flex space-x-2 mb-3" id="quick-reply-buttons">
+                                <!-- Quick replies dynamically loaded -->
+                            </div>
+                            <div class="flex">
+                                <input type="text" id="message-input" placeholder="Type your message..." class="flex-grow py-2 px-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mr-2">
+                                <button onclick="sendMessage()" class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition">Send</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Generic Modal for Notifications, Profile, Reports, IEP Manager -->
+    <div id="generic-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeGenericModal()">&times;</span>
+            <div id="generic-modal-content">
+                <!-- Content loaded dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        let currentRole = '';
+        let currentView = 'home';
+        let selectedStudent = null; // For teacher to track which student profile is open
+        let parentChild = null; // For parent to track their child's data
+
+        // --- Simulated Data ---
+        const students = [
+            {
+                id: 's1',
+                name: 'Ali Bin Ahmad',
+                age: 7,
+                photo: 'https://placehold.co/100x100/008080/FFFFFF?text=AA',
+                class: 'Primary 1',
+                disabilityType: 'Autism Spectrum',
+                iepFocus: 'Speech',
+                engagement: 'High',
+                attendanceTrend: 'Consistent',
+                iepProgress: 75,
+                iepOverview: {
+                    goals: [
+                        { id: 'g1', description: 'Improve verbal expression to 3-word sentences.', startDate: '2025-01-15', reviewDate: '2025-07-15', status: 75, notes: 'Making good progress, uses 2-3 word phrases frequently.', risk: false },
+                        { id: 'g2', description: 'Enhance fine motor skills for writing.', startDate: '2025-02-01', reviewDate: '2025-08-01', status: 60, notes: 'Needs more practice with pencil grip.', risk: false },
+                        { id: 'g3', description: 'Increase attention span during group activities (10 mins).', startDate: '2025-03-10', reviewDate: '2025-09-10', status: 40, notes: 'Still struggles with distractions, often needs redirection.', risk: true }
+                    ],
+                    strategySuggestions: [
+                        { tag: 'visual', text: 'Use visual schedules for transitions.' },
+                        { tag: 'sensory', text: 'Incorporate fidget toys during quiet work.' },
+                        { tag: 'language-heavy', text: 'Utilize picture cards for sentence building.' }
+                    ],
+                    summary: 'Ali has shown increased frustration during verbal tasks. Consider tactile engagement and short, focused activities to build confidence.'
+                },
+                dailyObservations: [
+                    { date: '2025-07-09', subject: 'Math', notes: 'Participated well in counting exercise. Needed prompting for addition.', engagement: 'Med', emotional: '😊' },
+                    { date: '2025-07-08', subject: 'Story Time', notes: 'Struggled to sit still. Engaged briefly with picture book.', engagement: 'Low', emotional: '😔' },
+                    { date: '2025-07-07', subject: 'Art', notes: 'Very focused on painting activity. Shared crayons with peer.', engagement: 'High', emotional: '😄' }
+                ],
+                parentObservations: [ // New field for parent observations
+                    { date: '2025-07-06', mood: '😊', task: 'Self-care (dressing)', notes: 'Dressed himself completely without assistance today, very proud!' },
+                    { date: '2025-07-04', mood: '😐', task: 'Homework (reading)', notes: 'Got distracted easily during reading time at home.' }
+                ],
+                robotData: {
+                    attentionSpan: [8, 12, 7, 10, 9, 15, 11], // minutes/session last 7 days
+                    moodTrends: ['😊', '😐', '😔', '😊', '😄', '😊', '😐'], // last 7 days
+                    taskCompletionBehavior: { completed: 70, errors: 30 }, // %
+                    socialInteraction: { solo: 40, group: 60 }, // %
+                    videoRecordedData: [
+                        { name: 'Ali_Behavioral_Clip_0705.mp4', timestamp: '2025-07-05 10:00', description: 'Clip showing focus during independent play.' },
+                        { name: 'Ali_Interaction_Clip_0703.mp4', timestamp: '2025-07-03 14:15', description: 'Brief interaction with a peer during free time.' }
+                    ]
+                },
+                uploadedWork: [
+                    { name: 'Ali_Drawing_July_5.jpg', timestamp: '2025-07-05 14:30', comments: 'A colorful drawing showing good fine motor control.' },
+                    { name: 'Ali_Writing_Sample_July_1.pdf', timestamp: '2025-07-01 10:15', comments: 'Shows progress in letter formation.' }
+                ]
+            },
+            {
+                id: 's2',
+                name: 'Siti Nurhaliza',
+                age: 6,
+                photo: 'https://placehold.co/100x100/800080/FFFFFF?text=SN',
+                class: 'Primary 1',
+                disabilityType: 'ADHD',
+                iepFocus: 'Motor Skills',
+                engagement: 'Med',
+                attendanceTrend: 'Regular',
+                iepProgress: 60,
+                iepOverview: {
+                    goals: [
+                        { id: 'g4', description: 'Improve gross motor coordination (running, jumping).', startDate: '2025-02-10', reviewDate: '2025-08-10', status: 60, notes: 'Shows improvement, but still needs encouragement for active play.', risk: false },
+                        { id: 'g5', description: 'Develop social interaction skills during free play.', startDate: '2025-03-01', reviewDate: '2025-09-01', status: 50, notes: 'Initiates play with peers occasionally.', risk: false }
+                    ],
+                    strategySuggestions: [
+                        { tag: 'physical', text: 'Incorporate obstacle courses during recess.' },
+                        { tag: 'social', text: 'Facilitate structured group games.' }
+                    ],
+                    summary: 'Siti thrives in structured environments. Encourage more spontaneous social interactions during free play with gentle guidance.'
+                },
+                dailyObservations: [
+                    { date: '2025-07-09', subject: 'PE', notes: 'Participated in throwing game, improved aim.', engagement: 'High', emotional: '😄' },
+                    { date: '2025-07-08', subject: 'Reading', notes: 'Focused during individual reading, shy during group discussion.', engagement: 'Med', emotional: '😐' },
+                    { date: '2025-07-07', subject: 'Lunch', notes: 'Ate well, sat with friends.', engagement: 'High', emotional: '😊' }
+                ],
+                parentObservations: [], // No parent observations for Siti in this prototype
+                robotData: {
+                    attentionSpan: [10, 15, 12, 14, 11, 16, 13],
+                    moodTrends: ['😄', '😊', '😐', '😄', '😊', '😄', '😊'],
+                    taskCompletionBehavior: { completed: 85, errors: 15 },
+                    socialInteraction: { solo: 20, group: 80 },
+                    videoRecordedData: []
+                },
+                uploadedWork: [
+                    { name: 'Siti_PE_Video_June.mp4', timestamp: '2025-06-20 09:00', comments: 'Video showing Siti practicing jumping.' }
+                ]
+            },
+            {
+                id: 's3',
+                name: 'David Tan',
+                age: 8,
+                photo: 'https://placehold.co/100x100/000080/FFFFFF?text=DT',
+                class: 'Primary 2',
+                disabilityType: 'Dyslexia',
+                iepFocus: 'Social Skills',
+                engagement: 'Low',
+                attendanceTrend: 'Irregular',
+                iepProgress: 30,
+                iepOverview: {
+                    goals: [
+                        { id: 'g6', description: 'Initiate peer interaction at least once per day.', startDate: '2025-04-01', reviewDate: '2025-10-01', status: 30, notes: 'Rarely initiates, responds when prompted.', risk: true },
+                        { id: 'g7', description: 'Improve emotional regulation during transitions.', startDate: '2025-04-15', reviewDate: '2025-10-15', status: 25, notes: 'Still has meltdowns during unexpected changes.', risk: true }
+                    ],
+                    strategySuggestions: [
+                        { tag: 'social', text: 'Use social stories to prepare for new situations.' },
+                        { tag: 'emotional', text: 'Implement a visual timer for transitions.' }
+                    ],
+                    summary: 'David struggles with social initiation and transitions. Consistent routines and clear expectations are crucial for his emotional well-being.'
+                },
+                dailyObservations: [
+                    { date: '2025-07-09', subject: 'Assembly', notes: 'Became agitated during loud music. Needed to be moved to quiet area.', engagement: 'Low', emotional: '😡' },
+                    { date: '2025-07-08', subject: 'Playtime', notes: 'Played alone with cars. Did not join group game.', engagement: 'Low', emotional: '😐' },
+                    { date: '2025-07-07', subject: 'Science', notes: 'Engaged with individual experiment. Asked teacher a question.', engagement: 'Med', emotional: '😊' }
+                ],
+                parentObservations: [],
+                robotData: {
+                    attentionSpan: [5, 8, 6, 7, 5, 9, 6],
+                    moodTrends: ['😡', '😔', '😐', '😔', '😡', '😐', '😊'],
+                    taskCompletionBehavior: { completed: 50, errors: 50 },
+                    socialInteraction: { solo: 90, group: 10 },
+                    videoRecordedData: []
+                },
+                uploadedWork: []
+            }
+        ];
+
+        // Parent's specific child data (for simulation, let's assume parent is always for Ali)
+        parentChild = students[0];
+
+        let parentHomeObservations = parentChild.parentObservations; // Link to Ali's parent observations
+
+        // --- Core Functions ---
+
+        function showRoleSelection() {
+            document.getElementById('app-container').classList.add('hidden');
+            document.getElementById('role-selection').classList.remove('hidden');
+            currentRole = '';
+            // Hide sidebar on mobile when role selection is active
+            document.querySelector('.sidebar').classList.add('hidden-mobile');
+        }
+
+        function selectRole(role) {
+            currentRole = role;
+            document.getElementById('role-selection').classList.add('hidden');
+            document.getElementById('app-container').classList.remove('hidden');
+
+            // Update profile name and picture
+            document.getElementById('profile-name').textContent = role === 'teacher' ? 'Ms. Lim' : 'Parent of Ali';
+            document.getElementById('profile-pic').src = role === 'teacher' ? 'https://placehold.co/40x40/008080/FFFFFF?text=TL' : 'https://placehold.co/40x40/0000FF/FFFFFF?text=PA';
+            document.getElementById('welcome-user-role').textContent = role === 'teacher' ? 'Teacher' : 'Parent';
+
+            // Show/hide navigation based on role
+            document.getElementById('teacher-nav').classList.toggle('hidden', role !== 'teacher');
+            document.getElementById('parent-nav').classList.toggle('hidden', role !== 'parent');
+
+            // Set initial view for the role
+            if (role === 'teacher') {
+                showView('home');
+                document.querySelector('#teacher-nav .nav-item[data-view="home"]').classList.add('active');
+                document.getElementById('teacher-home-content').classList.remove('hidden');
+                document.getElementById('parent-home-content').classList.add('hidden');
+            } else {
+                showView('home');
+                document.querySelector('#parent-nav .nav-item[data-view="home"]').classList.add('active');
+                document.getElementById('teacher-home-content').classList.add('hidden');
+                document.getElementById('parent-home-content').classList.remove('hidden');
+            }
+            lucide.createIcons(); // Re-render icons if needed
+        }
+
+        function showView(viewId) {
+            // Hide all views
+            document.querySelectorAll('.view').forEach(view => view.classList.add('hidden'));
+            // Show the requested view
+            document.getElementById(`${viewId}-view`).classList.remove('hidden');
+
+            // Update active navigation item
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            const activeNavItem = document.querySelector(`.nav-item[data-view="${viewId}"]`);
+            if (activeNavItem) {
+                activeNavItem.classList.add('active');
+            }
+
+
+            // Specific view rendering logic
+            if (viewId === 'student-list') {
+                renderStudentList();
+            } else if (viewId === 'my-child') {
+                renderMyChildProfile();
+            } else if (viewId === 'teacher-chatbot') {
+                document.getElementById('teacher-chat-input').focus();
+            } else if (viewId === 'parent-chatbot') {
+                document.getElementById('parent-chat-input').focus();
+            } else if (viewId === 'messages') {
+                renderMessagesView();
+            }
+
+            // Hide sidebar on mobile after navigation
+            if (window.innerWidth <= 768) {
+                document.querySelector('.sidebar').classList.add('hidden-mobile');
+            }
+            lucide.createIcons(); // Re-render icons if needed
+        }
+
+        // Event listeners for navigation (must be set after DOM is loaded)
+        function setupNavListeners() {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const viewId = this.dataset.view;
+                    showView(viewId);
+                });
+            });
+        }
+
+        // Call setupNavListeners after DOM is ready
+        window.addEventListener('DOMContentLoaded', function() {
+            setupNavListeners();
+        });
+
+        // --- Generic Modal Functions ---
+        function openGenericModal(title, contentHtml) {
+            const modal = document.getElementById('generic-modal');
+            const modalContent = document.getElementById('generic-modal-content');
+            modalContent.innerHTML = `<h3 class="text-2xl font-bold text-gray-800 mb-4">${title}</h3>` + contentHtml;
+            modal.style.display = 'flex';
+            lucide.createIcons();
+        }
+
+        function closeGenericModal() {
+            document.getElementById('generic-modal').style.display = 'none';
+            document.getElementById('generic-modal-content').innerHTML = ''; // Clear content
+        }
+
+        function openNotificationModal() {
+            const notifications = [
+                "New observation added for Ali Bin Ahmad.",
+                "IEP review due for Siti Nurhaliza next week.",
+                "Parent of David Tan uploaded a new medical record.",
+                "AI suggested new strategy for Ali's speech goal."
+            ];
+            let content = `<ul class="list-disc pl-5 space-y-2">`;
+            notifications.forEach(notif => {
+                content += `<li class="text-gray-700">${notif}</li>`;
+            });
+            content += `</ul><button class="mt-4 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg text-sm hover:bg-gray-300" onclick="alert('Simulating: All notifications marked as read.')">Mark all as read</button>`;
+            openGenericModal('Notifications', content);
+        }
+
+        function openProfileDropdown() {
+            const profileContent = `
+                <ul class="space-y-2 text-gray-700">
+                    <li class="p-2 hover:bg-gray-100 rounded-lg cursor-pointer">My Profile</li>
+                    <li class="p-2 hover:bg-gray-100 rounded-lg cursor-pointer">Settings</li>
+                    <li class="p-2 hover:bg-gray-100 rounded-lg cursor-pointer" onclick="showRoleSelection()">Log Out</li>
+                </ul>
+            `;
+            openGenericModal('User Profile', profileContent);
+        }
+
+        function openReportModal(type) {
+            let title = '';
+            let content = '';
+            if (type === 'teacher-report') {
+                title = 'Comprehensive Teacher Report';
+                content = `
+                    <p class="text-gray-700 mb-4">This report provides an aggregated view of student progress, engagement trends, and AI-driven insights across your entire class.</p>
+                    <h4 class="font-semibold mb-2">Overall Engagement Trend: <span class="text-green-600">Improving</span></h4>
+                    <p class="text-sm text-gray-600 mb-4">Students are showing increased participation in group activities.</p>
+                    <h4 class="font-semibold mb-2">Top 3 Performing IEP Goals:</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-600 mb-4">
+                        <li>Verbal expression (Ali): 75%</li>
+                        <li>Gross motor coordination (Siti): 60%</li>
+                        <li>Fine motor skills (Ali): 60%</li>
+                    </ul>
+                    <h4 class="font-semibold mb-2">Areas for Attention:</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-600 mb-4">
+                        <li>Attention span during group tasks (David)</li>
+                        <li>Social initiation (David)</li>
+                    </ul>
+                    <p class="text-sm text-gray-500">AI Recommendation: Consider implementing more structured play sessions to encourage social interaction for students like David. For attention, explore short, highly engaging activities.</p>
+                `;
+            } else if (type === 'parent-summary') {
+                title = 'Ali Bin Ahmad - Daily Summary Report';
+                content = `
+                    <p class="text-gray-700 mb-4">Here's a detailed summary of Ali's day at school:</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div class="card p-4">
+                            <h4 class="font-semibold mb-2">Overall Mood: <span class="text-2xl">😊</span> Happy</h4>
+                            <p class="text-sm text-gray-600">Ali maintained a positive mood throughout most of the day.</p>
+                        </div>
+                        <div class="card p-4">
+                            <h4 class="font-semibold mb-2">Attendance: <span class="text-green-600">Present</span></h4>
+                            <p class="text-sm text-gray-600">Full attendance today.</p>
+                        </div>
+                        <div class="card p-4">
+                            <h4 class="font-semibold mb-2">Key Activities:</h4>
+                            <ul class="list-disc pl-5 text-sm text-gray-600">
+                                <li>Participated well in Math counting.</li>
+                                <li>Struggled with group storytelling (needed redirection).</li>
+                                <li>Completed 3 out of 4 assigned tasks.</li>
+                            </ul>
+                        </div>
+                        <div class="card p-4">
+                            <h4 class="font-semibold mb-2">Teacher Notes:</h4>
+                            <p class="text-sm text-gray-600">"Ali was attentive during morning routines. Struggled with group storytelling. Completed 3 of 4 tasks. Overall, a productive day with minor challenges in group settings."</p>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-500">AI Insight: Ali continues to show strong individual focus. Group activities remain an area for development. Consider practicing turn-taking games at home.</p>
+                `;
+            }
+            openGenericModal(title, content);
+        }
+
+        function openIEPManagerModal(studentId) {
+            const student = students.find(s => s.id === studentId);
+            if (!student) {
+                alert('Student not found for IEP management.');
+                return;
+            }
+
+            let goalsHtml = student.iepOverview.goals.map(goal => `
+                <li class="border-b border-gray-200 pb-2 mb-2">
+                    <p class="font-semibold text-gray-800">${goal.description}</p>
+                    <p class="text-sm text-gray-600">Status: <span class="font-bold ${goal.status < 50 ? 'text-red-500' : (goal.status < 75 ? 'text-orange-500' : 'text-green-500')}">${goal.status}%</span></p>
+                    <p class="text-xs text-gray-500">Notes: ${goal.notes}</p>
+                </li>
+            `).join('');
+
+            let suggestedIEPContent = `
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Manage IEP for ${student.name}</h3>
+                <div class="card p-4 mb-6">
+                    <h4 class="font-semibold text-gray-700 mb-2">Current IEP Status Summary:</h4>
+                    <p class="text-gray-600 text-sm">${student.iepOverview.summary}</p>
+                    <p class="text-gray-600 text-sm mt-2">Overall Progress: <span class="font-bold text-teal-600">${student.iepProgress}%</span></p>
+                </div>
+                <div class="card p-4 mb-6">
+                    <h4 class="font-semibold text-gray-700 mb-2">Current Goals:</h4>
+                    <ul class="list-disc pl-5 space-y-2">
+                        ${goalsHtml}
+                    </ul>
+                </div>
+                <div class="card p-4 mb-6">
+                    <h4 class="font-semibold text-gray-700 mb-2">Suggested IEP Goals Moving Forward (AI-Generated):</h4>
+                    <ul class="list-disc pl-5 space-y-2 text-gray-600 text-sm">
+                        <li>Continue focus on verbal expression, targeting complex sentences (e.g., 5-word phrases).</li>
+                        <li>Introduce structured group play to enhance social initiation skills.</li>
+                        <li>Develop coping strategies for sensory overload during transitions.</li>
+                    </ul>
+                    <p class="text-sm text-gray-500 mt-3">These suggestions are based on recent observations and robot data analysis, focusing on areas for growth and maintaining current progress.</p>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button onclick="alert('Simulating: IEP updated for ${student.name}.')" class="bg-teal-500 text-white py-2 px-4 rounded-lg hover:bg-teal-600 transition">Save Changes</button>
+                    <button onclick="alert('Simulating: Generating detailed IEP report.')" class="bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300">Generate Full Report</button>
+                </div>
+            `;
+            openGenericModal(`Manage IEP: ${student.name}`, suggestedIEPContent);
+        }
+
+
+        // --- Teacher Specific Functions ---
+
+        function renderStudentList() {
+            const container = document.getElementById('student-cards-container');
+            container.innerHTML = ''; // Clear previous cards
+
+            students.forEach(student => {
+                const card = document.createElement('div');
+                card.className = 'card p-6 flex flex-col md:flex-row items-center cursor-pointer hover:shadow-lg transition student-card';
+                card.onclick = () => openStudentProfileModal(student.id);
+
+                const iepProgressStyle = `--progress: ${student.iepProgress}%;`;
+
+                card.innerHTML = `
+                    <img src="${student.photo}" alt="${student.name}" class="rounded-full w-24 h-24 object-cover mb-4 md:mb-0 md:mr-6 flex-shrink-0">
+                    <div class="flex-grow text-center md:text-left">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">${student.name} <span class="text-gray-500 text-sm">(${student.age} yrs)</span></h3>
+                        <div class="flex flex-wrap justify-center md:justify-start mb-3">
+                            <span class="tag tag-iep">${student.iepFocus}</span>
+                            <span class="tag tag-engagement">Engagement: ${student.engagement}</span>
+                            <span class="tag tag-attendance">Attendance: ${student.attendanceTrend}</span>
+                            <span class="tag tag-disability">${student.disabilityType}</span>
+                        </div>
+                        <p class="text-sm text-gray-600">Class: ${student.class}</p>
+                    </div>
+                    <div class="progress-circle mt-4 md:mt-0 md:ml-6" style="${iepProgressStyle}" data-progress="${student.iepProgress}%"></div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function openStudentProfileModal(studentId) {
+            selectedStudent = students.find(s => s.id === studentId);
+            if (!selectedStudent) return;
+
+            const modalContent = document.getElementById('student-profile-content');
+            modalContent.innerHTML = `
+                <div class="flex items-center justify-between mb-6 border-b pb-4">
+                    <div class="flex items-center">
+                        <img src="${selectedStudent.photo}" alt="${selectedStudent.name}" class="rounded-full w-20 h-20 object-cover mr-4">
+                        <div>
+                            <h2 class="text-3xl font-bold text-gray-800">${selectedStudent.name}</h2>
+                            <p class="text-gray-600 text-lg">${selectedStudent.age} yrs | Class: ${selectedStudent.class}</p>
+                        </div>
+                    </div>
+                    <button onclick="alert('Simulating: PDF Export for ${selectedStudent.name}.')" class="bg-gray-200 text-gray-700 py-2 px-4 rounded-lg text-sm hover:bg-gray-300 flex items-center">
+                        <i data-lucide="download" class="w-4 h-4 mr-2"></i> Export PDF
+                    </button>
+                </div>
+
+                <div class="flex border-b mb-6 overflow-x-auto">
+                    <button class="tab-button active" data-tab="iep-overview">IEP Overview</button>
+                    <button class="tab-button" data-tab="daily-observations">Daily Observations Log</button>
+                    <button class="tab-button" data-tab="parent-observations">Parent Home Observations</button>
+                    <button class="tab-button" data-tab="robot-data">Robot Recorded Data</button>
+                    <button class="tab-button" data-tab="uploaded-work">Uploaded Work</button>
+                    <button class="tab-button" data-tab="ai-suggestions">AI Suggestions</button>
+                </div>
+
+                <div id="iep-overview-tab" class="tab-content">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-4">IEP Goals</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white rounded-lg shadow-sm">
+                            <thead>
+                                <tr class="bg-gray-100 text-left text-gray-600 uppercase text-sm leading-normal">
+                                    <th class="py-3 px-6">Goal</th>
+                                    <th class="py-3 px-6">Start Date</th>
+                                    <th class="py-3 px-6">Review Date</th>
+                                    <th class="py-3 px-6">Status</th>
+                                    <th class="py-3 px-6">Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-600 text-sm font-light">
+                                ${selectedStudent.iepOverview.goals.map(goal => `
+                                    <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                        <td class="py-3 px-6">${goal.description}</td>
+                                        <td class="py-3 px-6">${goal.startDate}</td>
+                                        <td class="py-3 px-6">${goal.reviewDate}</td>
+                                        <td class="py-3 px-6">
+                                            <span class="font-bold ${goal.status < 50 ? 'text-red-500' : (goal.status < 75 ? 'text-orange-500' : 'text-green-500')}">${goal.status}%</span>
+                                            ${goal.risk ? '<span class="tag bg-red-100 text-red-700 ml-2">At Risk</span>' : ''}
+                                        </td>
+                                        <td class="py-3 px-6">${goal.notes}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="daily-observations-tab" class="tab-content hidden">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-4">Daily Observations Log</h3>
+                    <div class="mb-6 card p-4">
+                        <h4 class="text-lg font-medium text-gray-700 mb-3">Add New Observation</h4>
+                        <div class="mb-3">
+                            <label for="obs-date" class="block text-gray-700 text-sm font-bold mb-1">Date:</label>
+                            <input type="date" id="obs-date" class="shadow border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="${new Date().toISOString().split('T')[0]}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="obs-subject" class="block text-gray-700 text-sm font-bold mb-1">Subject/Activity:</label>
+                            <input type="text" id="obs-subject" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="e.g., Math, Recess, Speech Therapy">
+                        </div>
+                        <div class="mb-3">
+                            <label for="obs-notes" class="block text-gray-700 text-sm font-bold mb-1">Notes:</label>
+                            <textarea id="obs-notes" rows="3" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Detailed observation notes..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="obs-engagement" class="block text-gray-700 text-sm font-bold mb-1">Engagement Level:</label>
+                            <select id="obs-engagement" class="shadow border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                <option value="High">High</option>
+                                <option value="Med">Medium</option>
+                                <option value="Low">Low</option>
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-1">Emotional Tag:</label>
+                            <div class="emoji-picker" id="obs-emotional-picker">
+                                <span data-emoji="😄">😄</span>
+                                <span data-emoji="😊">😊</span>
+                                <span data-emoji="😐">😐</span>
+                                <span data-emoji="😔">😔</span>
+                                <span data-emoji="😡">😡</span>
+                            </div>
+                            <input type="hidden" id="obs-emotional-tag">
+                        </div>
+                        <button onclick="addObservation()" class="bg-teal-500 text-white py-2 px-4 rounded-lg hover:bg-teal-600 transition">Add Observation</button>
+                        <div id="obs-add-message" class="mt-3 text-sm text-green-600 hidden">Observation added! AI suggestions updated.</div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white rounded-lg shadow-sm">
+                            <thead>
+                                <tr class="bg-gray-100 text-left text-gray-600 uppercase text-sm leading-normal">
+                                    <th class="py-3 px-6">Date</th>
+                                    <th class="py-3 px-6">Subject/Activity</th>
+                                    <th class="py-3 px-6">Notes</th>
+                                    <th class="py-3 px-6">Engagement</th>
+                                    <th class="py-3 px-6">Emotion</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-600 text-sm font-light" id="observations-table-body">
+                                ${selectedStudent.dailyObservations.map(obs => `
+                                    <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                        <td class="py-3 px-6">${obs.date}</td>
+                                        <td class="py-3 px-6">${obs.subject}</td>
+                                        <td class="py-3 px-6">${obs.notes}</td>
+                                        <td class="py-3 px-6">${obs.engagement}</td>
+                                        <td class="py-3 px-6 text-2xl">${obs.emotional}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="parent-observations-tab" class="tab-content hidden">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-4">Parent Home Observations</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white rounded-lg shadow-sm">
+                            <thead>
+                                <tr class="bg-gray-100 text-left text-gray-600 uppercase text-sm leading-normal">
+                                    <th class="py-3 px-6">Date</th>
+                                    <th class="py-3 px-6">Mood</th>
+                                    <th class="py-3 px-6">Task</th>
+                                    <th class="py-3 px-6">Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-600 text-sm font-light">
+                                ${selectedStudent.parentObservations.length > 0 ? selectedStudent.parentObservations.map(obs => `
+                                    <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                        <td class="py-3 px-6">${obs.date}</td>
+                                        <td class="py-3 px-6 text-2xl">${obs.mood}</td>
+                                        <td class="py-3 px-6">${obs.task || 'N/A'}</td>
+                                        <td class="py-3 px-6">${obs.notes}</td>
+                                    </tr>
+                                `).join('') : `
+                                    <tr><td colspan="4" class="py-6 px-6 text-center text-gray-500">No parent home observations yet.</td></tr>
+                                `}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="robot-data-tab" class="tab-content hidden">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-4">Robot Recorded Data</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="card p-6">
+                            <h4 class="font-semibold mb-2">Attention Span (Last 7 Sessions)</h4>
+                            <p class="text-sm text-gray-600 mb-2">Avg: ${selectedStudent.robotData.attentionSpan.reduce((a, b) => a + b, 0) / selectedStudent.robotData.attentionSpan.length.toFixed(1)} mins</p>
+                            <div class="chart-sparkline">
+                                ${selectedStudent.robotData.attentionSpan.map(val => `<div class="sparkline-bar" style="height:${val * 3}px; max-height: 40px;"></div>`).join('')}
+                            </div>
+                            <p class="text-sm text-gray-500 mt-2">Trend: ${selectedStudent.robotData.attentionSpan.join(', ')} mins</p>
+                        </div>
+                        <div class="card p-6">
+                            <h4 class="font-semibold mb-2">Mood Trends (Last 7 Days)</h4>
+                            <div class="text-4xl flex gap-2">${selectedStudent.robotData.moodTrends.join('')}</div>
+                            <p class="text-sm text-gray-600 mt-2">Dominant Mood: ${selectedStudent.robotData.moodTrends.reduce((acc, curr) => (acc[curr] = (acc[curr] || 0) + 1, acc), {})['😊'] > selectedStudent.robotData.moodTrends.reduce((acc, curr) => (acc[curr] = (acc[curr] || 0) + 1, acc), {})['😔'] ? 'Positive' : 'Mixed'}</p>
+                        </div>
+                        <div class="card p-6">
+                            <h4 class="font-semibold mb-2">Task Completion Behavior</h4>
+                            <div class="chart-pie mx-auto" style="background: conic-gradient(#0d9488 0% ${selectedStudent.robotData.taskCompletionBehavior.completed}%, #e5e7eb ${selectedStudent.robotData.taskCompletionBehavior.completed}% 100%);">
+                                ${selectedStudent.robotData.taskCompletionBehavior.completed}%
+                            </div>
+                            <p class="text-sm text-gray-600 text-center mt-2">Completed: ${selectedStudent.robotData.taskCompletionBehavior.completed}% | Errors: ${selectedStudent.robotData.taskCompletionBehavior.errors}%</p>
+                        </div>
+                        <div class="card p-6">
+                            <h4 class="font-semibold mb-2">Social Interaction</h4>
+                            <div class="flex flex-col space-y-2 mt-4">
+                                <div>
+                                    <p class="text-sm text-gray-600">Solo Play: ${selectedStudent.robotData.socialInteraction.solo}%</p>
+                                    <div class="chart-bar" style="width: ${selectedStudent.robotData.socialInteraction.solo}%; background-color: #f59e0b;"></div>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-600">Group Play: ${selectedStudent.robotData.socialInteraction.group}%</p>
+                                    <div class="chart-bar" style="width: ${selectedStudent.robotData.socialInteraction.group}%; background-color: #10b981;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-4 mt-6">Video Recorded Data</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white rounded-lg shadow-sm">
+                            <thead>
+                                <tr class="bg-gray-100 text-left text-gray-600 uppercase text-sm leading-normal">
+                                    <th class="py-3 px-6">File Name</th>
+                                    <th class="py-3 px-6">Timestamp</th>
+                                    <th class="py-3 px-6">Description</th>
+                                    <th class="py-3 px-6">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-600 text-sm font-light">
+                                ${selectedStudent.robotData.videoRecordedData.length > 0 ? selectedStudent.robotData.videoRecordedData.map(video => `
+                                    <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                        <td class="py-3 px-6 flex items-center">
+                                            <i data-lucide="video" class="w-5 h-5 text-gray-500 mr-2"></i>
+                                            ${video.name}
+                                        </td>
+                                        <td class="py-3 px-6">${video.timestamp}</td>
+                                        <td class="py-3 px-6">${video.description}</td>
+                                        <td class="py-3 px-6">
+                                            <button onclick="alert('Simulating: Playing video ${video.name}.')" class="text-teal-600 hover:underline text-sm">Play</button>
+                                        </td>
+                                    </tr>
+                                `).join('') : `
+                                    <tr><td colspan="4" class="py-6 px-6 text-center text-gray-500">No video recorded data found.</td></tr>
+                                `}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="uploaded-work-tab" class="tab-content hidden">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-4">Uploaded Work</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white rounded-lg shadow-sm">
+                            <thead>
+                                <tr class="bg-gray-100 text-left text-gray-600 uppercase text-sm leading-normal">
+                                    <th class="py-3 px-6">File Name</th>
+                                    <th class="py-3 px-6">Timestamp</th>
+                                    <th class="py-3 px-6">Comments</th>
+                                    <th class="py-3 px-6">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-600 text-sm font-light">
+                                ${selectedStudent.uploadedWork.length > 0 ? selectedStudent.uploadedWork.map(file => `
+                                    <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                        <td class="py-3 px-6 flex items-center">
+                                            <i data-lucide="${getFileIcon(file.name)}" class="w-5 h-5 text-gray-500 mr-2"></i>
+                                            ${file.name}
+                                        </td>
+                                        <td class="py-3 px-6">${file.timestamp}</td>
+                                        <td class="py-3 px-6">
+                                            ${file.comments}
+                                            ${file.comments.length > 50 ? '<span class="text-blue-500 cursor-pointer ml-1" onclick="alert(\'Simulating: Showing full comment.\')">...more</span>' : ''}
+                                        </td>
+                                        <td class="py-3 px-6">
+                                            <button onclick="alert('Simulating: Viewing file ${file.name}.')" class="text-teal-600 hover:underline text-sm">View</button>
+                                        </td>
+                                    </tr>
+                                `).join('') : `
+                                    <tr><td colspan="4" class="py-6 px-6 text-center text-gray-500">No uploaded work found.</td></tr>
+                                `}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="ai-suggestions-tab" class="tab-content hidden">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-4">AI Suggestions</h3>
+                    <div class="card p-6 mb-6">
+                        <p class="text-gray-700 font-semibold mb-3">Summary:</p>
+                        <p class="text-gray-600 text-sm" id="ai-summary-text">${selectedStudent.iepOverview.summary}</p>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-4">Personalized Strategies</h3>
+                    <div class="space-y-4" id="ai-strategies-container">
+                        ${selectedStudent.iepOverview.strategySuggestions.map(suggestion => `
+                            <div class="card p-4 flex items-start">
+                                <span class="tag bg-blue-100 text-blue-700 mr-4">${suggestion.tag}</span>
+                                <div>
+                                    <p class="text-gray-700">${suggestion.text}</p>
+                                    <a href="#" class="text-teal-600 hover:underline text-sm mt-1 block" onclick="alert('Simulating external link: Resource for ${suggestion.tag}.')">Learn More <i data-lucide="external-link" class="inline-block w-3 h-3 ml-1"></i></a>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+
+            // Attach event listeners for tab switching
+            modalContent.querySelectorAll('.tab-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    modalContent.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    modalContent.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
+                    document.getElementById(`${this.dataset.tab}-tab`).classList.remove('hidden');
+                    lucide.createIcons(); // Re-render icons if needed
+                });
+            });
+
+            // Attach event listeners for emoji picker
+            document.querySelectorAll('#obs-emotional-picker span').forEach(emojiSpan => {
+                emojiSpan.addEventListener('click', function() {
+                    document.querySelectorAll('#obs-emotional-picker span').forEach(s => s.classList.remove('selected'));
+                    this.classList.add('selected');
+                    document.getElementById('obs-emotional-tag').value = this.dataset.emoji;
+                });
+            });
+
+            document.getElementById('student-profile-modal').style.display = 'flex';
+            lucide.createIcons(); // Re-render icons for modal content
+        }
+
+        function closeStudentProfileModal() {
+            document.getElementById('student-profile-modal').style.display = 'none';
+            selectedStudent = null;
+        }
+
+        function addObservation() {
+            const date = document.getElementById('obs-date').value;
+            const subject = document.getElementById('obs-subject').value;
+            const notes = document.getElementById('obs-notes').value;
+            const engagement = document.getElementById('obs-engagement').value;
+            const emotional = document.getElementById('obs-emotional-tag').value;
+
+            if (!date || !subject || !notes || !engagement || !emotional) {
+                alert('Please fill all observation fields.');
+                return;
+            }
+
+            const newObservation = { date, subject, notes, engagement, emotional };
+            selectedStudent.dailyObservations.unshift(newObservation); // Add to the beginning
+
+            // Simulate AI suggestion update
+            const newSummary = `Student has shown recent changes in behavior. Latest observation on ${date}: "${notes}". AI suggests reviewing engagement strategies and focusing on emotional regulation based on the "${emotional}" mood.`;
+            selectedStudent.iepOverview.summary = newSummary;
+
+            // Add a new AI suggestion based on the observation
+            const newAISuggestion = { tag: 'new-observation', text: `Based on the latest observation (${date}, mood: ${emotional}), consider tailoring activities to address the noted engagement level (${engagement}) and emotional state. For example, if 'Low' engagement, try more interactive or shorter tasks.` };
+            selectedStudent.iepOverview.strategySuggestions.push(newAISuggestion);
+
+
+            // Update the table in the modal
+            const tableBody = document.getElementById('observations-table-body');
+            const newRow = document.createElement('tr');
+            newRow.className = 'border-b border-gray-200 hover:bg-gray-50';
+            newRow.innerHTML = `
+                <td class="py-3 px-6">${date}</td>
+                <td class="py-3 px-6">${subject}</td>
+                <td class="py-3 px-6">${notes}</td>
+                <td class="py-3 px-6">${engagement}</td>
+                <td class="py-3 px-6 text-2xl">${emotional}</td>
+            `;
+            tableBody.prepend(newRow); // Add to top of table
+
+            // Clear form
+            document.getElementById('obs-subject').value = '';
+            document.getElementById('obs-notes').value = '';
+            document.getElementById('obs-engagement').value = 'High';
+            document.getElementById('obs-emotional-tag').value = '';
+            document.querySelectorAll('#obs-emotional-picker span').forEach(s => s.classList.remove('selected'));
+
+            // Show success message
+            const messageDiv = document.getElementById('obs-add-message');
+            messageDiv.classList.remove('hidden');
+            setTimeout(() => messageDiv.classList.add('hidden'), 3000);
+
+            // Re-render AI suggestions tab if it's currently active
+            const aiSummaryText = document.getElementById('ai-summary-text');
+            if (aiSummaryText) {
+                aiSummaryText.textContent = selectedStudent.iepOverview.summary;
+            }
+            const aiStrategiesContainer = document.getElementById('ai-strategies-container');
+            if (aiStrategiesContainer) {
+                aiStrategiesContainer.innerHTML = selectedStudent.iepOverview.strategySuggestions.map(suggestion => `
+                    <div class="card p-4 flex items-start">
+                        <span class="tag bg-blue-100 text-blue-700 mr-4">${suggestion.tag}</span>
+                        <div>
+                            <p class="text-gray-700">${suggestion.text}</p>
+                            <a href="#" class="text-teal-600 hover:underline text-sm mt-1 block" onclick="alert('Simulating external link: Resource for ${suggestion.tag}.')">Learn More <i data-lucide="external-link" class="inline-block w-3 h-3 ml-1"></i></a>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            lucide.createIcons();
+        }
+
+        // --- Parent Specific Functions ---
+
+        function renderMyChildProfile() {
+            const container = document.getElementById('my-child-profile-content');
+            if (!parentChild) {
+                container.innerHTML = '<p class="text-gray-600 text-center">No child data available. Please contact your teacher.</p>';
+                return;
+            }
+
+            const iepProgressStyle = `--progress: ${parentChild.iepProgress}%;`;
+
+            container.innerHTML = `
+                <div class="card p-6 mb-6">
+                    <div class="flex items-center mb-4">
+                        <img src="${parentChild.photo}" alt="${parentChild.name}" class="rounded-full w-24 h-24 object-cover mr-6">
+                        <div>
+                            <h2 class="text-3xl font-bold text-gray-800">${parentChild.name}</h2>
+                            <p class="text-gray-600 text-lg">${parentChild.age} yrs | Class: ${parentChild.class}</p>
+                            <p class="text-gray-600 text-lg">Teacher: Ms. Lim</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between mb-4">
+                        <p class="text-gray-700 text-lg font-semibold">Current Focus: <span class="text-teal-600">${parentChild.iepOverview.goals[0].description}</span></p>
+                        <div class="progress-circle" style="${iepProgressStyle}" data-progress="${parentChild.iepProgress}%"></div>
+                    </div>
+                </div>
+
+                <div class="flex border-b mb-6 overflow-x-auto">
+                    <button class="tab-button active" data-tab="daily-summary-parent">Daily Summary</button>
+                    <button class="tab-button" data-tab="progress-iep-parent">Progress vs IEP</button>
+                    <button class="tab-button" data-tab="parent-contributions">Parent Contributions</button>
+                    <button class="tab-button" data-tab="robot-data-parent">Robot Recorded Data</button>
+                    <button class="tab-button" data-tab="suggested-home-activities">Suggested Home Activities</button>
+                </div>
+
+                <div id="daily-summary-parent-tab" class="tab-content">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-4">Latest Daily Summary</h3>
+                    <div class="card p-6">
+                        <p class="text-gray-600 mb-4">"Ali was attentive during morning routines. Struggled with group storytelling. Completed 3 of 4 tasks."</p>
+                        <div class="flex items-center mb-3">
+                            <span class="text-3xl mr-2">😊</span> <span class="text-gray-700 font-medium">Mood: Happy</span>
+                        </div>
+                        <p class="text-gray-600 text-sm">Attendance today: <span class="font-medium text-green-600">Present</span></p>
+                    </div>
+                </div>
+
+                <div id="progress-iep-parent-tab" class="tab-content hidden">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-4">Progress Against IEP Goals</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white rounded-lg shadow-sm">
+                            <thead>
+                                <tr class="bg-gray-100 text-left text-gray-600 uppercase text-sm leading-normal">
+                                    <th class="py-3 px-6">Goal</th>
+                                    <th class="py-3 px-6">Status</th>
+                                    <th class="py-3 px-6">Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-600 text-sm font-light">
+                                ${parentChild.iepOverview.goals.map(goal => `
+                                    <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                        <td class="py-3 px-6">${goal.description}</td>
+                                        <td class="py-3 px-6">
+                                            <span class="font-bold ${goal.status < 50 ? 'text-red-500' : (goal.status < 75 ? 'text-orange-500' : 'text-green-500')}">${goal.status}%</span>
+                                            ${goal.risk ? '<span class="tag bg-red-100 text-red-700 ml-2">At Risk</span>' : ''}
+                                        </td>
+                                        <td class="py-3 px-6">${goal.notes}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card p-6 mt-6">
+                        <h4 class="text-lg font-semibold text-gray-700 mb-3">AI Suggestions for Progress</h4>
+                        <p class="text-gray-600 text-sm">${parentChild.iepOverview.summary}</p>
+                        <ul class="list-disc list-inside mt-3 text-sm text-gray-600">
+                            ${parentChild.iepOverview.strategySuggestions.map(s => `<li>${s.text}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+
+                <div id="parent-contributions-tab" class="tab-content hidden">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-4">Submit Home Observation</h3>
+                    <div class="mb-6 card p-4">
+                        <h4 class="text-lg font-medium text-gray-700 mb-3">New Observation</h4>
+                        <div class="mb-3">
+                            <label for="parent-obs-date" class="block text-gray-700 text-sm font-bold mb-1">Date:</label>
+                            <input type="date" id="parent-obs-date" class="shadow border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="${new Date().toISOString().split('T')[0]}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-gray-700 text-sm font-bold mb-1">Mood:</label>
+                            <div class="emoji-picker" id="parent-obs-emotional-picker">
+                                <span data-emoji="😄">😄</span>
+                                <span data-emoji="😊">😊</span>
+                                <span data-emoji="😐">😐</span>
+                                <span data-emoji="😔">😔</span>
+                                <span data-emoji="😡">😡</span>
+                            </div>
+                            <input type="hidden" id="parent-obs-emotional-tag">
+                        </div>
+                        <div class="mb-3">
+                            <label for="parent-obs-task" class="block text-gray-700 text-sm font-bold mb-1">Task Completed (Optional):</label>
+                            <select id="parent-obs-task" class="shadow border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                <option value="">Select a task</option>
+                                <option value="Self-care (dressing)">Self-care (dressing)</option>
+                                <option value="Homework (reading)">Homework (reading)</option>
+                                <option value="Play (sharing toys)">Play (sharing toys)</option>
+                                <option value="Communication (asking for help)">Communication (asking for help)</option>
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label for="parent-obs-notes" class="block text-gray-700 text-sm font-bold mb-1">Notes:</label>
+                            <textarea id="parent-obs-notes" rows="3" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Detailed observation notes from home..."></textarea>
+                        </div>
+                        <button onclick="addParentObservation()" class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition">Submit Observation</button>
+                        <div id="parent-obs-add-message" class="mt-3 text-sm text-green-600 hidden">Home observation submitted! AI home activity suggestions updated.</div>
+                    </div>
+
+                    <h3 class="text-xl font-semibold text-gray-700 mb-4">Previous Home Observations</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white rounded-lg shadow-sm">
+                            <thead>
+                                <tr class="bg-gray-100 text-left text-gray-600 uppercase text-sm leading-normal">
+                                    <th class="py-3 px-6">Date</th>
+                                    <th class="py-3 px-6">Mood</th>
+                                    <th class="py-3 px-6">Task</th>
+                                    <th class="py-3 px-6">Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-600 text-sm font-light" id="parent-observations-table-body">
+                                <!-- Parent observations dynamically added here -->
+                                ${parentChild.parentObservations.map(obs => `
+                                    <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                        <td class="py-3 px-6">${obs.date}</td>
+                                        <td class="py-3 px-6 text-2xl">${obs.mood}</td>
+                                        <td class="py-3 px-6">${obs.task || 'N/A'}</td>
+                                        <td class="py-3 px-6">${obs.notes}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="robot-data-parent-tab" class="tab-content hidden">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-4">Robot Recorded Data</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="card p-6">
+                            <h4 class="font-semibold mb-2">Attention Span (Last 7 Sessions)</h4>
+                            <p class="text-sm text-gray-600 mb-2">Avg: ${parentChild.robotData.attentionSpan.reduce((a, b) => a + b, 0) / parentChild.robotData.attentionSpan.length.toFixed(1)} mins</p>
+                            <div class="chart-sparkline">
+                                ${parentChild.robotData.attentionSpan.map(val => `<div class="sparkline-bar" style="height:${val * 3}px; max-height: 40px;"></div>`).join('')}
+                            </div>
+                            <p class="text-sm text-gray-500 mt-2">Trend: ${parentChild.robotData.attentionSpan.join(', ')} mins</p>
+                        </div>
+                        <div class="card p-6">
+                            <h4 class="font-semibold mb-2">Mood Trends (Last 7 Days)</h4>
+                            <div class="text-4xl flex gap-2">${parentChild.robotData.moodTrends.join('')}</div>
+                            <p class="text-sm text-gray-600 mt-2">Dominant Mood: ${parentChild.robotData.moodTrends.reduce((acc, curr) => (acc[curr] = (acc[curr] || 0) + 1, acc), {})['😊'] > parentChild.robotData.moodTrends.reduce((acc, curr) => (acc[curr] = (acc[curr] || 0) + 1, acc), {})['😔'] ? 'Positive' : 'Mixed'}</p>
+                        </div>
+                        <div class="card p-6">
+                            <h4 class="font-semibold mb-2">Task Completion Behavior</h4>
+                            <div class="chart-pie mx-auto" style="background: conic-gradient(#0d9488 0% ${parentChild.robotData.taskCompletionBehavior.completed}%, #e5e7eb ${parentChild.robotData.taskCompletionBehavior.completed}% 100%);">
+                                ${parentChild.robotData.taskCompletionBehavior.completed}%
+                            </div>
+                            <p class="text-sm text-gray-600 text-center mt-2">Completed: ${parentChild.robotData.taskCompletionBehavior.completed}% | Errors: ${parentChild.robotData.taskCompletionBehavior.errors}%</p>
+                        </div>
+                        <div class="card p-6">
+                            <h4 class="font-semibold mb-2">Social Interaction</h4>
+                            <div class="flex flex-col space-y-2 mt-4">
+                                <div>
+                                    <p class="text-sm text-gray-600">Solo Play: ${parentChild.robotData.socialInteraction.solo}%</p>
+                                    <div class="chart-bar" style="width: ${parentChild.robotData.socialInteraction.solo}%; background-color: #f59e0b;"></div>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-600">Group Play: ${parentChild.robotData.socialInteraction.group}%</p>
+                                    <div class="chart-bar" style="width: ${parentChild.robotData.socialInteraction.group}%; background-color: #10b981;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="suggested-home-activities-tab" class="tab-content hidden">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-4">Suggested Home Activities</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="home-activities-container">
+                        <div class="card p-6">
+                            <h4 class="text-lg font-semibold text-gray-700 mb-2">Sound Sorting Game</h4>
+                            <p class="text-sm text-gray-600 mb-2">Time: 15-20 mins | Goal: Auditory Processing</p>
+                            <p class="text-sm text-gray-600">Equipment: Household objects that make different sounds (e.g., keys, crinkled paper, spoon).</p>
+                            <p class="text-sm text-gray-500 mt-2">AI Suggestion: "Good for children needing to distinguish sounds and focus."</p>
+                        </div>
+                        <div class="card p-6">
+                            <h4 class="text-lg font-semibold text-gray-700 mb-2">Building Blocks Challenge</h4>
+                            <p class="text-sm text-gray-600 mb-2">Time: 20-30 mins | Goal: Fine Motor Skills, Problem Solving</p>
+                            <p class="text-sm text-gray-600">Equipment: Building blocks (Lego, Duplo, wooden blocks).</p>
+                            <p class="text-sm text-gray-500 mt-2">AI Suggestion: "Helps develop hand-eye coordination and spatial reasoning."</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Attach event listeners for parent profile tab switching
+            container.querySelectorAll('.tab-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    container.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    container.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
+                    document.getElementById(`${this.dataset.tab}-tab`).classList.remove('hidden');
+                    lucide.createIcons(); // Re-render icons if needed
+                });
+            });
+
+            // Attach event listeners for parent observation emoji picker
+            document.querySelectorAll('#parent-obs-emotional-picker span').forEach(emojiSpan => {
+                emojiSpan.addEventListener('click', function() {
+                    document.querySelectorAll('#parent-obs-emotional-picker span').forEach(s => s.classList.remove('selected'));
+                    this.classList.add('selected');
+                    document.getElementById('parent-obs-emotional-tag').value = this.dataset.emoji;
+                });
+            });
+
+            lucide.createIcons(); // Re-render icons for modal content
+        }
+
+        function addParentObservation() {
+            const date = document.getElementById('parent-obs-date').value;
+            const mood = document.getElementById('parent-obs-emotional-tag').value;
+            const task = document.getElementById('parent-obs-task').value;
+            const notes = document.getElementById('parent-obs-notes').value;
+
+            if (!date || !mood || !notes) {
+                alert('Please fill at least date, mood, and notes for home observation.');
+                return;
+            }
+
+            const newParentObs = { date, mood, task, notes };
+            parentHomeObservations.unshift(newParentObs); // Add to the beginning of Ali's parent observations
+
+            // Simulate AI home activity suggestion update based on new observation
+            const homeActivitiesContainer = document.getElementById('home-activities-container');
+            const newActivity = document.createElement('div');
+            newActivity.className = 'card p-6';
+            newActivity.innerHTML = `
+                <h4 class="text-lg font-semibold text-gray-700 mb-2">New AI Activity: "${task || 'General Focus'}"</h4>
+                <p class="text-sm text-gray-600 mb-2">Time: 10-15 mins | Goal: ${task || 'Emotional Regulation'}</p>
+                <p class="text-sm text-gray-600">Equipment: Varies based on activity.</p>
+                <p class="text-sm text-gray-500 mt-2">AI Suggestion: "Based on your recent observation ('${notes}'), try activities that support ${task || 'emotional expression'}."</p>
+            `;
+            homeActivitiesContainer.prepend(newActivity);
+
+
+            // Update the table in the modal
+            const tableBody = document.getElementById('parent-observations-table-body');
+            const newRow = document.createElement('tr');
+            newRow.className = 'border-b border-gray-200 hover:bg-gray-50';
+            newRow.innerHTML = `
+                <td class="py-3 px-6">${date}</td>
+                <td class="py-3 px-6 text-2xl">${mood}</td>
+                <td class="py-3 px-6">${task || 'N/A'}</td>
+                <td class="py-3 px-6">${notes}</td>
+            `;
+            tableBody.prepend(newRow); // Add to top of table
+
+            // Clear form
+            document.getElementById('parent-obs-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('parent-obs-emotional-tag').value = '';
+            document.getElementById('parent-obs-task').value = '';
+            document.getElementById('parent-obs-notes').value = '';
+            document.querySelectorAll('#parent-obs-emotional-picker span').forEach(s => s.classList.remove('selected'));
+
+            // Show success message
+            const messageDiv = document.getElementById('parent-obs-add-message');
+            messageDiv.classList.remove('hidden');
+            setTimeout(() => messageDiv.classList.add('hidden'), 3000);
+        }
+
+
+        // --- Chatbot Functions ---
+
+        function sendChatMessage(message, role) {
+            const chatInputId = role === 'teacher' ? 'teacher-chat-input' : 'parent-chat-input';
+            const chatMessagesId = role === 'teacher' ? 'teacher-chat-messages' : 'parent-chat-messages';
+            const chatInput = document.getElementById(chatInputId);
+            const chatMessages = document.getElementById(chatMessagesId);
+
+            if (!message.trim()) return;
+
+            // Add user message
+            const userMessageDiv = document.createElement('div');
+            userMessageDiv.className = 'chat-message user';
+            userMessageDiv.textContent = message;
+            chatMessages.appendChild(userMessageDiv);
+
+            chatInput.value = ''; // Clear input
+            chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to bottom
+
+            // Simulate bot response
+            setTimeout(() => {
+                const botMessageDiv = document.createElement('div');
+                botMessageDiv.className = 'chat-message bot';
+                let botResponse = '';
+
+                if (role === 'teacher') {
+                    if (message.toLowerCase().includes('calming strategies')) {
+                        botResponse = "For calming strategies, consider deep breathing exercises, a quiet corner, or sensory tools like fidget spinners. For Ali, visual cues might be particularly effective.";
+                    } else if (message.toLowerCase().includes('iep goals speech')) {
+                        botResponse = "Common IEP goals for speech therapy include improving articulation, increasing vocabulary, using complete sentences, and understanding social cues. For Ali, focusing on 3-word sentences is a good next step.";
+                    } else if (message.toLowerCase().includes('improve focus')) {
+                        botResponse = "To improve focus during group activities, try breaking tasks into smaller steps, using visual timers, or providing a designated 'focus spot'. For David, minimizing distractions and clear instructions are key.";
+                    } else {
+                        botResponse = "I'm still learning! Could you rephrase or try one of the suggested prompts?";
+                    }
+                } else { // Parent role
+                    if (message.toLowerCase().includes('how is my kid today')) {
+                        botResponse = "Ali had a generally good day! He was attentive during morning routines but struggled a bit with group storytelling. He completed most of his tasks. His mood was observed as happy 😊.";
+                    } else if (message.toLowerCase().includes('verbal goal slow')) {
+                        botResponse = "Verbal goal progress can be slow due to various factors. It's important to be consistent with home practice. For Ali, continue using picture cards and encouraging short phrases. You can also ask his teacher for specific exercises.";
+                    } else if (message.toLowerCase().includes('eye contact')) {
+                        botResponse = "To support eye contact at home, try engaging in short, fun activities that naturally encourage looking at faces, like peek-a-boo or singing songs with exaggerated expressions. Positive reinforcement is key.";
+                    } else if (message.toLowerCase().includes('emotional regulation')) {
+                        botResponse = "Helping with emotional regulation involves teaching your child to identify feelings and healthy coping mechanisms. Create a 'calm-down corner' at home. For Ali, identifying triggers and offering choices can be helpful.";
+                    } else {
+                        botResponse = "I'm here to help! Please try one of the suggested prompts or consider reaching out to your child's teacher for more personalized advice.";
+                    }
+                }
+
+                botMessageDiv.textContent = botResponse;
+                chatMessages.appendChild(botMessageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to bottom again
+            }, 1000);
+        }
+
+        // --- Messages (Communicate with Teacher/Parent) ---
+        function renderMessagesView() {
+            const quickReplyButtonsContainer = document.getElementById('quick-reply-buttons');
+            quickReplyButtonsContainer.innerHTML = ''; // Clear previous buttons
+
+            let quickReplies = [];
+            if (currentRole === 'teacher') {
+                document.querySelector('#messages-view .flex-shrink-0.border-b h3').textContent = 'Conversation with Parent [Parent Name]';
+                quickReplies = [
+                    "Thank you for the update.",
+                    "Let's schedule a meeting.",
+                    "Question about homework."
+                ];
+            } else { // Parent role
+                document.querySelector('#messages-view .flex-shrink-0.border-b h3').textContent = 'Conversation with Teacher [Ms. Lim]';
+                quickReplies = [
+                    "Thank you for the update.",
+                    "Let’s schedule a call.",
+                    "I have a question about his IEP."
+                ];
+            }
+
+            quickReplies.forEach(reply => {
+                const button = document.createElement('button');
+                button.className = 'bg-gray-200 text-gray-700 py-2 px-3 rounded-full text-sm hover:bg-gray-300';
+                button.textContent = reply;
+                button.onclick = () => addQuickReply(reply);
+                quickReplyButtonsContainer.appendChild(button);
+            });
+        }
+
+        function sendMessage() {
+            const messageInput = document.getElementById('message-input');
+            const messageThread = document.getElementById('message-thread');
+            const message = messageInput.value.trim();
+
+            if (!message) return;
+
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            // Add user message
+            const userMessageDiv = document.createElement('div');
+            userMessageDiv.className = 'flex justify-end';
+            userMessageDiv.innerHTML = `
+                <div class="bg-blue-500 text-white p-3 rounded-lg max-w-xs">
+                    <p class="text-sm">${message}</p>
+                    <span class="text-xs text-blue-200 block text-right mt-1">${timeString}</span>
+                </div>
+            `;
+            messageThread.appendChild(userMessageDiv);
+            messageInput.value = '';
+            messageThread.scrollTop = messageThread.scrollHeight;
+
+            // Simulate response
+            setTimeout(() => {
+                const responseDiv = document.createElement('div');
+                responseDiv.className = 'flex justify-start';
+                const responseTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                let responseText = '';
+
+                if (currentRole === 'teacher') {
+                    responseText = "Thank you for your message, Parent! I'll get back to you shortly.";
+                } else { // Parent role
+                    responseText = "Thank you for your message, Ms. Lim! I'll get back to you shortly.";
+                }
+
+                responseDiv.innerHTML = `
+                    <div class="bg-gray-200 p-3 rounded-lg max-w-xs">
+                        <p class="text-sm">${responseText}</p>
+                        <span class="text-xs text-gray-500 block text-right mt-1">${responseTime}</span>
+                    </div>
+                `;
+                messageThread.appendChild(responseDiv);
+                messageThread.scrollTop = messageThread.scrollHeight;
+            }, 1500);
+        }
+
+
+        // --- Utility Functions ---
+
+        function getFileIcon(fileName) {
+            const ext = fileName.split('.').pop().toLowerCase();
+            if (['pdf'].includes(ext)) return 'file-text';
+            if (['doc', 'docx'].includes(ext)) return 'file-text';
+            if (['xls', 'xlsx'].includes(ext)) return 'file-spreadsheet';
+            if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) return 'image';
+            if (['mp4', 'mov', 'avi'].includes(ext)) return 'video';
+            return 'file';
+        }
+
+        function simulateFileUpload() {
+            const uploadMessage = document.getElementById('upload-message');
+            uploadMessage.classList.remove('hidden');
+            setTimeout(() => {
+                uploadMessage.classList.add('hidden');
+                document.getElementById('file-upload-input').value = ''; // Clear file input
+                document.getElementById('file-notes').value = ''; // Clear notes
+                document.getElementById('file-type').value = 'medical'; // Reset file type
+                alert('File uploaded successfully! (Simulated)');
+            }, 2000);
+        }
+
+        // Sidebar toggle for mobile
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('hidden-mobile');
+        }
+
+        // Initial setup on load
+        window.onload = function() {
+            lucide.createIcons(); // Ensure icons are created on initial load
+            // The role selection screen will be shown first by default via CSS
+        };
+    </script>
+</body>
+</html>
