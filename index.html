@@ -11,15 +11,15 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f4f7f6;
-            color: #333;
+            background-color: #fff;
+            color: #2C3E50;
         }
         .sidebar {
             width: 250px;
             min-width: 250px;
-            background-color: #ffffff;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            border-right: 1px solid #e0e0e0;
+            background-color: #fff;
+            box-shadow: 0 2px 10px rgba(108,92,231,0.08);
+            border-right: 1px solid #FDCB6E;
             transition: transform 0.3s ease-in-out;
         }
         .sidebar.hidden-mobile {
@@ -48,9 +48,9 @@
             background-color: #f9fafb;
         }
         .header {
-            background-color: #ffffff;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            border-bottom: 1px solid #e0e0e0;
+            background-color: #fff;
+            box-shadow: 0 2px 10px rgba(108,92,231,0.08);
+            border-bottom: 2px solid #FDCB6E;
         }
         .nav-item {
             display: flex;
@@ -62,31 +62,32 @@
             transition: background-color 0.2s, color 0.2s;
         }
         .nav-item:hover {
-            background-color: #e0f2fe; /* Light blue for hover */
-            color: #0d9488; /* Teal for text */
+            background-color: #FDCB6E;
+            color: #6C5CE7;
         }
         .nav-item.active {
-            background-color: #0d9488; /* Teal for active */
-            color: #ffffff;
+            background-color: #6C5CE7;
+            color: #fff;
             font-weight: 600;
         }
         .nav-item.active svg {
-            color: #ffffff;
+            color: #fff;
         }
         .nav-item svg {
             margin-right: 12px;
             width: 20px;
             height: 20px;
-            color: #6b7280; /* Gray for inactive icons */
+            color: #6C5CE7;
         }
         .nav-item.active svg {
-            color: #ffffff;
+            color: #fff;
         }
         .card {
-            background-color: #ffffff;
+            background-color: #fff;
             border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 12px rgba(108,92,231,0.08);
             padding: 24px;
+            border: 1px solid #FDCB6E;
         }
         .tag {
             padding: 4px 10px;
@@ -96,35 +97,35 @@
             margin-right: 8px;
             white-space: nowrap;
         }
-        .tag-iep { background-color: #e0f2fe; color: #0d9488; } /* Light blue, teal */
-        .tag-engagement { background-color: #fffbe6; color: #d97706; } /* Light yellow, orange */
-        .tag-attendance { background-color: #fef2f2; color: #dc2626; } /* Light red, red */
-        .tag-disability { background-color: #eef2ff; color: #4f46e5; } /* Light indigo, indigo */
+        .tag-iep { background-color: #FDCB6E; color: #6C5CE7; }
+        .tag-engagement { background-color: #fffbe6; color: #6C5CE7; }
+        .tag-attendance { background-color: #FDCB6E; color: #2C3E50; }
+        .tag-disability { background-color: #e5e7fa; color: #6C5CE7; }
 
         .progress-circle {
             position: relative;
             width: 60px;
             height: 60px;
             border-radius: 50%;
-            background: conic-gradient(#0d9488 var(--progress, 0%), #e5e7eb var(--progress, 0%));
+            background: conic-gradient(#6C5CE7 var(--progress, 0%), #FDCB6E var(--progress, 0%));
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 0.875rem;
             font-weight: 600;
-            color: #0d9488;
+            color: #6C5CE7;
         }
         .progress-circle::after {
             content: attr(data-progress);
             position: absolute;
-            background: white;
+            background: #fff;
             border-radius: 50%;
             width: 50px;
             height: 50px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #0d9488;
+            color: #6C5CE7;
         }
         .modal {
             display: none; /* Hidden by default */
@@ -187,14 +188,14 @@
             margin-bottom: 10px;
         }
         .chat-message.user {
-            background-color: #0d9488;
-            color: white;
+            background-color: #6C5CE7;
+            color: #fff;
             align-self: flex-end;
             border-bottom-right-radius: 4px;
         }
         .chat-message.bot {
-            background-color: #e5e7eb;
-            color: #333;
+            background-color: #FDCB6E;
+            color: #2C3E50;
             align-self: flex-start;
             border-bottom-left-radius: 4px;
         }
@@ -227,7 +228,7 @@
 
         /* Chart Styling */
         .chart-bar {
-            background-color: #0d9488;
+            background-color: #6C5CE7;
             height: 20px;
             border-radius: 4px;
             margin-bottom: 5px;
@@ -242,7 +243,8 @@
             justify-content: center;
             font-size: 0.8rem;
             font-weight: 600;
-            color: white;
+            color: #fff;
+            background: linear-gradient(135deg, #6C5CE7 60%, #FDCB6E 100%);
         }
         .chart-sparkline {
             height: 50px;
@@ -256,7 +258,7 @@
         }
         .sparkline-bar {
             width: 10px;
-            background-color: #0d9488;
+            background-color: #6C5CE7;
             border-radius: 2px;
         }
 
@@ -333,7 +335,7 @@
         <!-- Sidebar Navigation -->
         <aside class="sidebar flex flex-col py-6 px-4">
             <div class="flex-shrink-0 mb-8 px-2">
-                <h1 class="text-2xl font-extrabold text-teal-700">EduConnect</h1>
+                <h1 class="text-2xl font-extrabold text-teal-700">SenSAI</h1>
             </div>
             <nav class="flex-grow">
                 <div id="teacher-nav" class="hidden">
